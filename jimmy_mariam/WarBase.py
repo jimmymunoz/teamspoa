@@ -51,6 +51,7 @@ def defineGroups():
 
 
 
+
 def getResumenTeamInformation():
 	resumen = "TeamResume: "
 	for agentKey, agentIds in WarBase.teamInformation.items():
@@ -79,8 +80,9 @@ class defaultState(object):
 			
 		identifyAgents()
 			
-		if(True): #Pending condition
+		if( WarBase.needsDefineGroups ): #Pending condition
 			defineGroups();
+			#WarBase.needsDefineGroups = False
 		
 
 		#if( createAgent() ):
@@ -164,4 +166,5 @@ WarBase.ourTeam = [];
 WarBase.teamInformation = {};
 WarBase.baseState = "sateOk"
 WarBase.needsIdentityTeam = True
+WarBase.needsDefineGroups = True
 WarBase.baseEnemy = []; #Array with the enemy bases location.

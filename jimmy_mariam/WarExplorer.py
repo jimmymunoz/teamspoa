@@ -70,8 +70,8 @@ def reflexes():
 	if PerceptsEnemiesWarBase:
 		percetEnemyBase = PerceptsEnemiesWarBase[0]
 		#actionWarExplorer.idBaseFound = percetEnemyBase.getId()
-		infoBase = ( str(percetEnemyBase.getAngle()), str(percetEnemyBase.getDistance()), str(getHeading()) )
 		#broadcastMessageToAll("EnemyBase",  infoBase )
+		infoBase = ( str(percetEnemyBase.getAngle()), str(percetEnemyBase.getDistance()), str(getHeading()) )
 		broadcastMessageToAll("EnemyBaseFound",  infoBase )
 		setHeading( percetEnemyBase.getAngle() )
 		if( percetEnemyBase.getDistance() > 5 ):
