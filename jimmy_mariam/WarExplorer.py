@@ -57,6 +57,7 @@ class WiggleState(object):
 			RandomHeading()
 		return move();
 
+
 def validateMainMessages():
 	messages = getMessages();
 	for message in messages:
@@ -73,7 +74,7 @@ def reflexes():
 		#broadcastMessageToAll("EnemyBase",  infoBase )
 		broadcastMessageToAll("EnemyBaseFound",  infoBase )
 		setHeading( percetEnemyBase.getAngle() )
-		if( percetEnemyBase.getDistance() > 1 ):
+		if( percetEnemyBase.getDistance() > 5 ):
 			actionWarExplorer.currentTask = "goToEnamyBase";
 		else:
 			actionWarExplorer.currentTask = "waitingRocket";
