@@ -1,9 +1,9 @@
-Name: Python_primtives
+Name: jimmy_mariam_2
 IconPath: dekat.png
 SoundPath: dekat.wav
 Description: |
-    Equipe utilisant des primitives de plus haut niveau
-BrainsPackage: inGameTeams.python_primitive
+    Equipe de super Python avec function niveau 0
+BrainsPackage: inGameTeams.jimmy_mariam_2
 ScriptImplementation: python
 AgentsBrainClasses:
     WarBase: WarBase.py
