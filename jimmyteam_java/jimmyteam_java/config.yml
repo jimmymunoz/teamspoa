@@ -1,0 +1,13 @@
+Name: jimmyteam_java
+IconPath: jimmyteam_java.png
+SoundPath: jimmyteam_java.wav
+Description: |
+    Descriptions de mon équipe
+BrainsPackage: jimmyteam_java
+AgentsBrainClasses:
+    WarBase: WarBaseBrainController
+    WarExplorer: WarExplorerBrainController
+    WarRocketLauncher: WarRocketLauncherBrainController
+    WarKamikaze: WarKamikazeBrainController
+    WarEngineer: WarEngineerBrainController
+    WarTurret: WarTurretBrainController
