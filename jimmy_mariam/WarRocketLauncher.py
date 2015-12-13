@@ -36,9 +36,10 @@ class searchEnemyBase(object):
 			if(message.getMessage() == "Base ennemie"): 
 				arrContent = message.getContent()
 				explorerAngl = float(arrContent[0]);
-				setDebugString("attaqueeeee ")
-				broadcastMessage("defenceurs", "attaque","attaqueeee",(str(explorerAngl)))
-			if(message.getMessage() == "attaqueeee" and message.getMessage() == "Base ennemie"):
+				setDebugString("attaqueeeee"+str(explorerAngl))
+				setHeading(explorerAngl)
+				#broadcastMessage("defenceurs", "attaque","attaqueeee",(str(explorerAngl)))
+			if(message.getMessage() == "attaqueeee"):
 				arrConte = message.getContent()
 				Angl = float(arrConte[0]);
 				setHeading(Angl)
@@ -120,11 +121,11 @@ class etatInitial(object):
 		messages = getMessages();
 		for message in messages:
 			if(message.getMessage() == "OurBaseIsHere"):
-				if(message.getDistance() <= 75):
+				if(message.getDistance() <= 100):
 					requestRole ("defenceurs", "defend")
-					setDebugString("je surveille la base")
-					setHeading(message.getAngle())
-					return move()
+					
+					#setHeading(message.getAngle())
+					
 					WarRocketLauncher.nextState = surveillerBase
 				else:
 					requestRole ("defenceurs", "attaque")
@@ -135,17 +136,20 @@ class etatInitial(object):
 class surveillerBase(object):
 	@staticmethod
 	def execute():
+		WarRocketLauncher.nextState = surveillerBase
 		broadcastMessageToAgentType(WarAgentType.WarBase, "whereAreYo", "");
 		messages = getMessages();
 		for message in messages:
 			if(message.getMessage() == "OurBaseIsHere"):
-				if(message.getDistance() <= 100):
-					setDebugString("maaaaaaaBase")			
-					setHeading(message.getAngle()+20)
+				if(message.getDistance() < 100):
+					setDebugString("je surveille la base")			
+					#setHeading(message.getAngle())
+					#setRandomHeading()
 					return move()
 				else:
-					setHeading(message.getAngle()+20 )
+					setHeading(message.getAngle())
 					return move()
+		
 		return move()
 class WiggleState(object):
 	@staticmethod

@@ -71,7 +71,7 @@ def reflexes():
 	enemiBases = getPerceptsEnemiesWarBase()
 	if enemiBases:
 		for Ebases in enemiBases:
-			setDebugString("Base ennemie")
+			setDebugString("Base ennemie"+str(Ebases.getAngle()))
 			broadcastMessageToAgentType(WarAgentType.WarRocketLauncher,"Base ennemie",(str(Ebases.getAngle())))
 		#broadcastMessageToAgentType(WarAgentType.WarRocketLauncher,"Base ennemie","")
 		#broadcastMessage("defenceurs", "attaque","attaqueeee","")

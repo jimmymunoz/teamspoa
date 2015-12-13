@@ -5,11 +5,11 @@ def actionWarBase():
 
 	if( True ):
 		for message in messages:
-			if(message.getMessage() == "whereAreYou"):
+			if(message.getMessage() == "whereAreYou"): 
 				setDebugString("OurBaseIsHere");
 				sendMessage(message.getSenderID(), "OurBaseIsHere", "");
 			if(message.getMessage() == "whereAreYo"):
-				setDebugString("OurBaseIsHere");
+				#setDebugString("OurBaseIsHere");
 				sendMessage(message.getSenderID(), "OurBaseIsHere", "");
 			elif( message.getMessage() == "b" ) :
 				debugStr = "RocketLaunchersAttack: (" + str(message.getAngle()) + ") Angle ";
