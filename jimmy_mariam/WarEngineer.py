@@ -13,8 +13,12 @@ def validateMainMessages():
 def reflexes():
 	percepts = getPercepts()
 	#for percept in percepts:
-			
+	if isBlocked():
+		RandomHeading()
+		return None	
 	return None
+
+
 
 def actionWarEngineer():
 	validateMainMessages()

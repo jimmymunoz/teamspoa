@@ -1,20 +1,49 @@
 class defaultState(object):
 	@staticmethod
 	def execute():
+		setDebugString("I'm a WarKamikaze");
+		messages = getMessages();
+		for message in messages:
+			if(message.getMessage() == "EnemyBaseFound"): #Pending to calculate base enemy position
+				arrContent = message.getContent()
+				WarRocketLauncher.enemyBaseAngle = message.getAngle();
+				baseDistance = float(message.getDistance());
+
+				debugStr = "AttackEnemyBase BA( " + str(message.getAngle()) + " ) BD: (" + str(message.getDistance()) + ") ";
+				setDebugString(debugStr);
+				setHeading(message.getAngle())
+				return move();
 		return move();
 
 def validateMainMessages():
 	messages = getMessages();
 	for message in messages:
 		if(message.getMessage() == "identifyYou"):
-			setDebugString("I'm a WarKamikaze");
 			sendMessage(message.getSenderID(), "responseIdentify", ("WarKamikaze") );
 			
 def reflexes():
-	percepts = getPercepts()
+	#percepts = getPercepts()
+	PerceptsEnemiesWarBase = getPerceptsEnemiesWarBase();
+	if PerceptsEnemiesWarBase:
+		#broadcastMessageToAll("EnemyBase","")
+		#infoBase = ( str(percetEnemyBase.getAngle()), str(percetEnemyBase.getDistance()), str(getHeading()) )
+		#broadcastMessageToAll("EnemyBaseFound",  infoBase )
+		for percept in PerceptsEnemiesWarBase:
+			setHeading(percept.getAngle())
+			if (isReloaded()):
+				return fire()
+				#return move()
+			else :
+				return reloadWeapon()
 	#for percept in percepts:
 			
 	return None
+
+class WiggleState(object):
+	@staticmethod
+	def execute():
+		setDebugString("WiggleState")
+		return move();
 
 def actionWarKamikaze():
 	validateMainMessages()

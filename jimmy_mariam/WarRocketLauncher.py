@@ -3,6 +3,8 @@ from math import *
 #Globals
 distanceToHelpBase = 100
 
+
+
 #Jimmy: Method to calculate the enemy base angle.
 def getEnemyBaseAngle(explorerAngle, explorerDistance, baseAngle, baseDistance):
 	newAngle = 0

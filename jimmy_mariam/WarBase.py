@@ -1,5 +1,26 @@
 ATTACKPERCENTAGE = 0.5
 
+def manageCreations():
+	if(len(WarBase.teamInformation['WarKamikaze']) <= 2 ):
+		setNextAgentToCreate(WarAgentType.WarKamikaze);
+		if (isAbleToCreate(WarAgentType.WarKamikaze) ):
+			return create();
+
+	elif(len(WarBase.teamInformation['WarEngineer']) == 0):
+		setNextAgentToCreate(WarAgentType.WarEngineer);
+		if (isAbleToCreate(WarAgentType.WarEngineer) ):
+			return create();
+			
+			
+
+def createAgent():
+	setNextAgentToCreate(WarAgentType.WarKamikaze)
+	if( isAbleToCreate(WarAgentType.WarKamikaze) ):
+		create()
+		return True;
+	else:
+		return False;
+
 #def identifyOurTeam:
 #	WarBase.ourTeam = ();
 
@@ -59,15 +80,6 @@ def getResumenTeamInformation():
 		resumen = resumen + " " + str(agentKey) + ": " + str(strIds)
 	return resumen;
 
-
-def createAgent():
-	setNextAgentToCreate(WarAgentType.WarKamikaze)
-	if( isAbleToCreate(WarAgentType.WarKamikaze) ):
-		create()
-		return True;
-	else:
-		return False;
-
 class defaultState(object):
 	@staticmethod
 	def execute():
@@ -114,8 +126,26 @@ class defaultState(object):
 		setDebugString(WarBase.baseState);
 		if(True): # Debug TeamInformation
 			setDebugString( getResumenTeamInformation() );
+
+		if(True): # isAbleToCreate
+			if(isAbleToCreate(WarAgentType.WarKamikaze)):
+				ableCreate = 1
+			else:
+				ableCreate = 0
+			setDebugString( "isAbleToCreate WarKamikaze: " + str(ableCreate) );
+			
 		
 		broadcastMessageToAll("baseState", WarBase.baseState);
+
+		
+		if( getHealth() < getMaxHealth() ):#Jimmy Recovery Heatlth
+			return eat();
+		
+		resultCreations = manageCreations();#Jimmy: If is possible create a agent
+		
+		if( resultCreations ):
+			return resultCreations;
+
 		return idle();
 
 def validateMainMessages():
