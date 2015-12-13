@@ -1,5 +1,5 @@
 ATTACKPERCENTAGE = 0.5
-ENABLE_CREATION = True
+ENABLE_CREATION = False
 
 DISTANCE_TOUR_FROM_BASE = 100
 DISTANCE_TOUR_TOLERANCE = 20
@@ -19,15 +19,9 @@ def manageCreations():
 				WarBase.needsIdentityTeam = True
 				WarBase.needsDefineGroups = True
 				return create();
-		elif(len(WarBase.teamInformation['WarRocketLauncher']) < 5 ):
+		elif(len(WarBase.teamInformation['WarRocketLauncher']) <= 5 ):
 			setNextAgentToCreate(WarAgentType.WarRocketLauncher);
 			if (isAbleToCreate(WarAgentType.WarRocketLauncher) ):
-				WarBase.needsIdentityTeam = True
-				WarBase.needsDefineGroups = True
-				return create();
-		elif(len(WarBase.teamInformation['WarExplorer']) < 2 ):
-			setNextAgentToCreate(WarAgentType.WarExplorer);
-			if (isAbleToCreate(WarAgentType.WarExplorer) ):
 				WarBase.needsIdentityTeam = True
 				WarBase.needsDefineGroups = True
 				return create();
