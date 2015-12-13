@@ -6,13 +6,14 @@ class defaultState(object):
 		for message in messages:
 			if(message.getMessage() == "EnemyBaseFound"): #Pending to calculate base enemy position
 				arrContent = message.getContent()
-				WarRocketLauncher.enemyBaseAngle = message.getAngle();
+				#WarKamikaze.enemyBaseAngle = message.getAngle();
 				baseDistance = float(message.getDistance());
 
 				debugStr = "AttackEnemyBase BA( " + str(message.getAngle()) + " ) BD: (" + str(message.getDistance()) + ") ";
 				setDebugString(debugStr);
 				setHeading(message.getAngle())
 				return move();
+
 		return move();
 
 def validateMainMessages():
@@ -36,14 +37,10 @@ def reflexes():
 			else :
 				return reloadWeapon()
 	#for percept in percepts:
-			
+	if isBlocked():
+		RandomHeading()
+		
 	return None
-
-class WiggleState(object):
-	@staticmethod
-	def execute():
-		setDebugString("WiggleState")
-		return move();
 
 def actionWarKamikaze():
 	validateMainMessages()
@@ -66,3 +63,4 @@ def actionWarKamikaze():
 
 WarKamikaze.nextState = defaultState
 WarKamikaze.currentState = None
+WarKamikaze.enemyBaseAngle = 0

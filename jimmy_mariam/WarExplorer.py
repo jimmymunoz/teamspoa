@@ -69,12 +69,10 @@ def reflexes():
 	PerceptsEnemiesWarBase = getPerceptsEnemiesWarBase();
 	if PerceptsEnemiesWarBase:
 		percetEnemyBase = PerceptsEnemiesWarBase[0]
-		#actionWarExplorer.idBaseFound = percetEnemyBase.getId()
-		#broadcastMessageToAll("EnemyBase",  infoBase )
 		infoBase = ( str(percetEnemyBase.getAngle()), str(percetEnemyBase.getDistance()), str(getHeading()) )
 		broadcastMessageToAll("EnemyBaseFound",  infoBase )
 		setHeading( percetEnemyBase.getAngle() )
-		if( percetEnemyBase.getDistance() > 5 ):
+		if( percetEnemyBase.getDistance() > 10 ):
 			actionWarExplorer.currentTask = "goToEnamyBase";
 		else:
 			actionWarExplorer.currentTask = "waitingRocket";

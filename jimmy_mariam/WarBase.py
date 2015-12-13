@@ -1,15 +1,44 @@
 ATTACKPERCENTAGE = 0.5
+ENABLE_CREATION = True
+
+DISTANCE_TOUR_FROM_BASE = 100
+DISTANCE_TOUR_TOLERANCE = 20
 
 def manageCreations():
-	if(len(WarBase.teamInformation['WarKamikaze']) <= 2 ):
-		setNextAgentToCreate(WarAgentType.WarKamikaze);
-		if (isAbleToCreate(WarAgentType.WarKamikaze) ):
-			return create();
+	#if( len(WarBase.teamInformation['WarEngineer']) >= 1 and len(WarBase.teamInformation['WarTurret']) <= len(WarBase.teamInformation['WarBase']) ):
+	if(ENABLE_CREATION):
+		if( len(WarBase.teamInformation['WarEngineer']) >= 1 and WarBase.WarTurretId == 0 ):
+			setNextAgentToCreate(WarAgentType.WarTurret);
+			infoBuildBase = [DISTANCE_TOUR_FROM_BASE, DISTANCE_TOUR_TOLERANCE]
+			#broadcastMessageToAgentType(WarAgentType.WarEngineer, "buildWarWarTurret", infoBuildBase);
+			broadcastMessageToAll("buildWarWarTurret", infoBuildBase)
+			return idle();
+		elif(len(WarBase.teamInformation['WarEngineer']) == 0):
+			setNextAgentToCreate(WarAgentType.WarEngineer);
+			if (isAbleToCreate(WarAgentType.WarEngineer) ):
+				WarBase.needsIdentityTeam = True
+				WarBase.needsDefineGroups = True
+				return create();
+		elif(len(WarBase.teamInformation['WarRocketLauncher']) < 5 ):
+			setNextAgentToCreate(WarAgentType.WarRocketLauncher);
+			if (isAbleToCreate(WarAgentType.WarRocketLauncher) ):
+				WarBase.needsIdentityTeam = True
+				WarBase.needsDefineGroups = True
+				return create();
+		elif(len(WarBase.teamInformation['WarExplorer']) < 2 ):
+			setNextAgentToCreate(WarAgentType.WarExplorer);
+			if (isAbleToCreate(WarAgentType.WarExplorer) ):
+				WarBase.needsIdentityTeam = True
+				WarBase.needsDefineGroups = True
+				return create();
+		elif(len(WarBase.teamInformation['WarKamikaze']) <= 2 ):
+			setNextAgentToCreate(WarAgentType.WarKamikaze);
+			if (isAbleToCreate(WarAgentType.WarKamikaze) ):
+				WarBase.needsIdentityTeam = True
+				WarBase.needsDefineGroups = True
+				return create();
 
-	elif(len(WarBase.teamInformation['WarEngineer']) == 0):
-		setNextAgentToCreate(WarAgentType.WarEngineer);
-		if (isAbleToCreate(WarAgentType.WarEngineer) ):
-			return create();
+			
 			
 			
 
@@ -26,25 +55,35 @@ def createAgent():
 
 #Method to identify the Agents
 def identifyAgents():
-	WarBase.ourTeam = []
+	needsUpdate = False
 	messages = getMessages();
 	for message in messages:
 		if(message.getMessage() == "responseIdentify"):
-			tmpContent = message.getContent()
-			WarBase.ourTeam.append( [tmpContent[0], message.getSenderID()] ); #Agent Role, AngetId
+			needsUpdate = True;
+		
 
-	updateTeamInformation()
+	if(needsUpdate):
+		WarBase.ourTeam = []
+		messages = getMessages();
+		for message in messages:
+			if(message.getMessage() == "responseIdentify"):
+				tmpContent = message.getContent()
+				WarBase.ourTeam.append( [tmpContent[0], message.getSenderID()] ); #Agent Role, AngetId
+
+	if (needsUpdate):
+		updateTeamInformation()
 
 
 # Update de variable with the Ids of the agents
 def updateTeamInformation():
 	WarBase.teamInformation = {}
-	WarBase.teamInformation['WarBase'] = []
-	WarBase.teamInformation['WarEngineer'] = []
-	WarBase.teamInformation['WarExplorer'] = []
-	WarBase.teamInformation['WarKamikaze'] = []
-	WarBase.teamInformation['WarRocketLauncher'] = []
-	WarBase.teamInformation['WarTurret'] = []
+
+	#WarBase.teamInformation['WarBase'] = []
+	#WarBase.teamInformation['WarEngineer'] = []
+	#WarBase.teamInformation['WarExplorer'] = []
+	#WarBase.teamInformation['WarKamikaze'] = []
+	#WarBase.teamInformation['WarRocketLauncher'] = []
+	#WarBase.teamInformation['WarTurret'] = []
 	for agentData in WarBase.ourTeam:
 		agentType = agentData[0] #Type
 		agentId = agentData[1] # Id
@@ -67,6 +106,9 @@ def defineGroups():
 				else:
 					totalGroup = totalGroup + 1
 					sendMessage(agentId, "yourGroupIs", ("Defense") );
+			if( agentKey == "WarTurret" ):
+				sendMessage(agentId, "yourGroupIs", ("Defense") );
+
 			#elif( agentKey == "WarExplorer" ):
 			#	sendMessage(agentId, "yourGroupIs", ("Defense") );
 
@@ -77,7 +119,8 @@ def getResumenTeamInformation():
 	resumen = "TeamResume: "
 	for agentKey, agentIds in WarBase.teamInformation.items():
 		strIds = ','.join(str(e) for e in agentIds)
-		resumen = resumen + " " + str(agentKey) + ": " + str(strIds)
+		resumen = resumen + " " + str(agentKey) + ": " + strIds
+
 	return resumen;
 
 class defaultState(object):
@@ -127,7 +170,7 @@ class defaultState(object):
 		if(True): # Debug TeamInformation
 			setDebugString( getResumenTeamInformation() );
 
-		if(True): # isAbleToCreate
+		if(False): # isAbleToCreate
 			if(isAbleToCreate(WarAgentType.WarKamikaze)):
 				ableCreate = 1
 			else:
@@ -163,11 +206,12 @@ def reflexes():
 	percepts = getPercepts()
 	for percept in percepts:
 		#Jimmy: Only Rocket Launchers
-		if (percept.getType().equals(WarAgentType.WarRocketLauncher) and isEnemy(percept) and percept.getDistance() <= 30 ):
-			if(False): #Disable
-				broadcastMessageToAgentType(WarAgentType.WarRocketLauncher, "ThereAreEnemiesInOurBase", "");#str to cast string
+		if(True): #Disable
+			if (percept.getType().equals(WarAgentType.WarRocketLauncher) and isEnemy(percept) and percept.getDistance() <= 30 ):
+				broadcastMessageToAll("ThereAreEnemiesInOurBase", "")
+				#broadcastMessageToAgentType(WarAgentType.WarRocketLauncher, "ThereAreEnemiesInOurBase", "");#str to cast string
 				WarBase.baseState = "BaseAtRisk"
-			#setDebugString("ThereAreEnemiesInOurBase distance:" + str(percept.getDistance()) );
+				setDebugString("ThereAreEnemiesInOurBase distance:" + str(percept.getDistance()) );
 			
 	return None
 
@@ -198,3 +242,4 @@ WarBase.baseState = "sateOk"
 WarBase.needsIdentityTeam = True
 WarBase.needsDefineGroups = True
 WarBase.baseEnemy = []; #Array with the enemy bases location.
+WarBase.WarTurretId = 0

@@ -1,7 +1,9 @@
-from math import *
+DEFENSE_RANDOM_HEADING = 5
+DISTANCE_TO_GARDE_OUR_BASE = 100
+DISTANCE_TO_HELP_OUR_BASE = 500
 
+from math import *
 #Globals
-distanceToHelpBase = 100
 
 
 
@@ -51,6 +53,7 @@ class searchEnemyBase(object):
 
 					debugStr = "AttackEnemyBase BA( " + str(message.getAngle()) + " ) BD: (" + str(message.getDistance()) + ") ";
 					setDebugString(debugStr);
+
 					setHeading(message.getAngle())
 					return move();
 				if(message.getMessage() == "RocketLaunchersAttack" and False): #Pending to calculate base enemi position
@@ -69,18 +72,27 @@ class searchEnemyBase(object):
 					setDebugString(debugStr);
 					#setHeading(newAngle)
 					return move();
-				if(message.getMessage() == "ThereAreEnemiesInOurBase"): 
-					WarRocketLauncher.ourBaseAngle = message.getAngle();
-					baseDistance = message.getDistance();
-					if( baseDistance <= distanceToHelpBase ):
-						setHeading(WarRocketLauncher.ourBaseAngle)
-						setDebugString("goToDefendOurBase: " + str(baseDistance));
-						WarRocketLauncher.nextState = defendOurBase
-					else:
-						setDebugString("NotEarly: " + str(baseDistance));
-						
-					return move();
 			return move()
+
+class surveillerBase(object):
+	@staticmethod
+	def execute():
+		WarRocketLauncher.nextState = surveillerBase
+		broadcastMessageToAgentType(WarAgentType.WarBase, "whereAreYou", "");
+		messages = getMessages();
+		for message in messages:
+			if(message.getMessage() == "OurBaseIsHere"):
+				if(message.getDistance() < DISTANCE_TO_GARDE_OUR_BASE):
+					setDebugString("je surveille la base")			
+					#setHeading(message.getAngle())
+					#setRandomHeading()
+					return move()
+				else:
+					setHeading(message.getAngle())
+					return move()
+		
+		setRandomHeading(DEFENSE_RANDOM_HEADING);
+		return move()
 
 def validateMainMessages():
 	messages = getMessages()
@@ -95,36 +107,34 @@ def validateMainMessages():
 			
 			elif( WarRocketLauncher.GroupName == "Defense" ):
 				requestRole ("defenceurs", "defend")
-			
+		
+		if(message.getMessage() == "ThereAreEnemiesInOurBase"): 
+			WarRocketLauncher.ourBaseAngle = message.getAngle();
+			baseDistance = message.getDistance();
+			if( WarRocketLauncher.GroupName == "Defense" ):
+				setHeading(WarRocketLauncher.ourBaseAngle)
+			else:
+				if( baseDistance <= DISTANCE_TO_HELP_OUR_BASE ):
+					setHeading(WarRocketLauncher.ourBaseAngle)
+					setDebugString("goToDefendOurBase: " + str(baseDistance));
+					WarRocketLauncher.nextState = defendOurBase
+					WarRocketLauncher.GroupName == "Defense"
+				else:
+					setDebugString("NotEarly: " + str(baseDistance));
+					WarRocketLauncher.GroupName = "Attack"
+				
+			return move();
 
 	return None
-
-class surveillerBase(object):
-	@staticmethod
-	def execute():
-		WarRocketLauncher.nextState = surveillerBase
-		broadcastMessageToAgentType(WarAgentType.WarBase, "whereAreYou", "");
-		messages = getMessages();
-		for message in messages:
-			if(message.getMessage() == "OurBaseIsHere"):
-				if(message.getDistance() < distanceToHelpBase):
-					setDebugString("je surveille la base")			
-					#setHeading(message.getAngle())
-					#setRandomHeading()
-					return move()
-				else:
-					setHeading(message.getAngle())
-					return move()
-		
-		return move()
 
 def reflexes():
 	PerceptsEnemiesWarBase = getPerceptsEnemiesWarBase();
 	PerceptsEnemiesWarluncher = getPerceptsEnemiesWarRocketLauncher();
 	if PerceptsEnemiesWarBase:
+		percetEnemyBase = PerceptsEnemiesWarBase[0]
 		#broadcastMessageToAll("EnemyBase","")
-		#infoBase = ( str(percetEnemyBase.getAngle()), str(percetEnemyBase.getDistance()), str(getHeading()) )
-		#broadcastMessageToAll("EnemyBaseFound",  infoBase )
+		infoBase = ( str(percetEnemyBase.getAngle()), str(percetEnemyBase.getDistance()), str(getHeading()) )
+		broadcastMessageToAll("EnemyBaseFound",  infoBase )
 		for percept in PerceptsEnemiesWarBase:
 			setHeading(percept.getAngle())
 			if (isReloaded()):
@@ -133,14 +143,25 @@ def reflexes():
 			else :
 				return reloadWeapon()
 				#return move()
-	if( WarRocketLauncher.GroupName == "Defense" ):#Jimmy: Only for the defense Group
-		for percept in getPerceptsEnemies():
-			setHeading(percept.getAngle())
-			if (isReloaded()):
-				return fire()
-				#return move()
-			else :
-				return reloadWeapon()
+	elif( WarRocketLauncher.GroupName == "Defense" ):#Jimmy: Only for the defense Group
+		PerceptsWarRocketLauncher = getPerceptsEnemiesByType(WarAgentType.WarRocketLauncher)
+		#getPerceptsWarKamikaze()
+		if( PerceptsWarRocketLauncher ): #Priority PerceptsWarRocketLauncher
+			for percept in PerceptsWarRocketLauncher:
+				setHeading(percept.getAngle())
+				if (isReloaded()):
+					return fire()
+					#return move()
+				else :
+					return reloadWeapon()
+		else: # Else other enemies
+			for percept in getPerceptsEnemies():
+				setHeading(percept.getAngle())
+				if (isReloaded()):
+					return fire()
+					#return move()
+				else :
+					return reloadWeapon()
 
 	if isBlocked():
 		RandomHeading()
@@ -161,8 +182,10 @@ class defendOurBase(object):
 				ThereAreEnemiesInOurBase = True
 				break
 
-		if(not ThereAreEnemiesInOurBase ): #JImmy: if there are not enemies in the base he continues
-			WarRocketLauncher.nextState = searchEnemyBase
+		if( WarRocketLauncher.GroupName != "Defense" ):
+			if(not ThereAreEnemiesInOurBase ): #JImmy: if there are not enemies in the base he continues
+				WarRocketLauncher.nextState = searchEnemyBase
+
 		return move();
 
 
