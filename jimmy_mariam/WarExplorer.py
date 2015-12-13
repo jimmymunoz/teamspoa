@@ -57,13 +57,26 @@ class WiggleState(object):
 			RandomHeading()
 		return move();
 
+def validateMainMessages():
+	messages = getMessages();
+	for message in messages:
+		if(message.getMessage() == "identifyYou"):
+			sendMessage(message.getSenderID(), "responseIdentify", (str("WarExplorer") ) );
+
+
 def reflexes():
 	PerceptsEnemiesWarBase = getPerceptsEnemiesWarBase();
 	if PerceptsEnemiesWarBase:
 		percetEnemyBase = PerceptsEnemiesWarBase[0]
+		#actionWarExplorer.idBaseFound = percetEnemyBase.getId()
 		infoBase = ( str(percetEnemyBase.getAngle()), str(percetEnemyBase.getDistance()), str(getHeading()) )
-		broadcastMessageToAll("EnemyBase",  infoBase )
-		actionWarExplorer.currentTask = "waitingRocket";
+		#broadcastMessageToAll("EnemyBase",  infoBase )
+		broadcastMessageToAll("EnemyBaseFound",  infoBase )
+		setHeading( percetEnemyBase.getAngle() )
+		if( percetEnemyBase.getDistance() > 1 ):
+			actionWarExplorer.currentTask = "goToEnamyBase";
+		else:
+			actionWarExplorer.currentTask = "waitingRocket";
 	
 	if isBlocked(): 
 		RandomHeading()
@@ -72,12 +85,18 @@ def reflexes():
 
 
 def actionWarExplorer():
+	validateMainMessages()
 	result = reflexes() # Reflexes
 	if result:
 		return result
 
+
+
+	if( actionWarExplorer.currentTask == "goToEnamyBase" ):
+		setDebugString("goToEnemyBase" + " Id: ")
+		return move()
 	if( actionWarExplorer.currentTask == "waitingRocket" ):
-		setDebugString("waitingRocketLauchersResponse" + " Heading: " + str( getHeading() ))
+		setDebugString("waitingRocketLauchersResponse" + " Id: ")
 		return idle() #• Idle : l’agent ne bougera plus et ne fera aucune action. 
 
 	# FSM - Changement d'Ã©tat
@@ -95,3 +114,4 @@ def actionWarExplorer():
 actionWarExplorer.nextState = SearchFoodState
 actionWarExplorer.currentState = None
 actionWarExplorer.currentTask = ""
+actionWarExplorer.idBaseFound = 0
