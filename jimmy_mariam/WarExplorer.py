@@ -2,6 +2,7 @@ class SearchFoodState(object):
 	@staticmethod
 	def execute():
 		setDebugString("SearchFoodState")
+		
 		if isBagFull():
 			actionWarExplorer.nextState = GoHomeState
 			return idle()
@@ -19,6 +20,11 @@ class SearchFoodState(object):
 			for message in getMessages():
 				if message.getMessage() == "FoodHere":
 					followTarget(message)
+		messages = getMessages();
+		for message in messages:
+			if(message.getMessage() == "Base ennemie" and message.getDistance < 200): 
+				setDebugString("Base ennemie"+str(message.getAngle()+180))
+				setHeading(360);
 		return move()
 
 class GoHomeState(object):
@@ -45,6 +51,9 @@ class GoHomeState(object):
 		for mess in getMessages():
 			if isMessageOfWarBase(mess):
 				followTarget(mess)
+			elif(mess.getMessage() == "Base ennemie" and mess.getDistance < 200): 
+				setDebugString("Base ennemie"+str(mess.getAngle()+180))
+				setHeading(360)
 			return move()
 		return move()
 		
@@ -69,16 +78,27 @@ class WiggleState(object):
 
 def reflexes():
 	enemiBases = getPerceptsEnemiesWarBase()
+	
 	if enemiBases:
 		for Ebases in enemiBases:
 			setDebugString("Base ennemie"+str(Ebases.getAngle()))
-			broadcastMessageToAgentType(WarAgentType.WarRocketLauncher,"Base ennemie",(str(Ebases.getAngle())))
+			#broadcastMessageToAgentType(WarAgentType.WarRocketLauncher,"Base ennemie",(str(Ebases.getAngle())))
 		#broadcastMessageToAgentType(WarAgentType.WarRocketLauncher,"Base ennemie","")
 		#broadcastMessage("defenceurs", "attaque","attaqueeee","")
-		#broadcastMessageToAll("Base ennemie","")
+			broadcastMessageToAll("Base ennemie",(str(Ebases.getAngle())))
 			setHeading(Ebases.getAngle())
-			return move();
-		
+			if(Ebases.getDistance()>1):
+				return move();
+			else:
+				return idle()
+					
+	else:		
+		messages = getMessages();
+		for message in messages:
+			if(message.getMessage() == "Base ennemie" and message.getDistance < 200): 
+				setDebugString("Base ennemie"+str(message.getAngle()))
+				setHeading(360)
+					
 	if isBlocked(): 
 		RandomHeading()
 	return None
