@@ -3,6 +3,33 @@ from math import *
 #Globals
 distanceToHelpBase = 400
 
+#Jimmy: Method to calculate the enemy base angle.
+def getEnemyBaseAngle(explorerAngle, explorerDistance, baseAngle, baseDistance):
+	newAngle = 0
+	if (explorerDistance > baseDistance):
+		hypoteneuse =  explorerDistance; #hypoténuse
+		ca = baseDistance
+	else:
+		hypoteneuse =  baseDistance; #hypoténuse
+		ca = explorerDistance
+
+	angle = baseAngle - explorerAngle;
+	# triangle 1
+	# co1 = h1 * COS(angle) 
+	# ca1 = h1 * SEN(angle) 
+	# difAngle1 = (180 - 90 - baseAngle)
+	# test -> ca^2 + co^2 =  h1^2
+
+	# triangle 2
+	# co2 = abs(explorerAngle - ca1)
+	# ca2 = co1
+	# difAngle2 = tang = co2/ca2
+
+	# triangle 3
+	# angleRocket = difAngle1 + difAngle2
+
+	return newAngle
+
 
 class searchEnemyBase(object):
 	@staticmethod
@@ -10,19 +37,30 @@ class searchEnemyBase(object):
 		WarRocketLauncher.nextState = searchEnemyBase
 		messages = getMessages();
 		for message in messages:
+			if(message.getMessage() == "EnemyBaseFound"): #Pending to calculate base enemy position
+				arrContent = message.getContent()
+				WarRocketLauncher.enemyBaseAngle = message.getAngle();
+				baseDistance = float(message.getDistance());
+
+				debugStr = "AttackEnemyBase BA( " + str(message.getAngle()) + " ) BD: (" + str(message.getDistance()) + ") ";
+				setDebugString(debugStr);
+				setHeading(message.getAngle())
+				return move();
 			if(message.getMessage() == "RocketLaunchersAttack" and False): #Pending to calculate base enemi position
 				WarRocketLauncher.enemyBaseAngle = message.getAngle();
 				arrContent = message.getContent()
 				explorerAngle = float(arrContent[0]);
 				explorerDistance = float(arrContent[1]);
+				baseAngle = float(message.getAngle());
+				baseDistance = float(message.getDistance());
 
-				RLH = str( WarRocketLauncher.getHeading() );
-				newAngle = 360 - (WarRocketLauncher.enemyBaseAngle + explorerAngle)  ;##pendiente problema con angulos superiores a 180
+				#newAngle = 360 - (WarRocketLauncher.enemyBaseAngle + explorerAngle)  ;##pendiente problema con angulos superiores a 180
+				newAngle = getEnemyBaseAngle(explorerAngle, explorerDistance, baseAngle, baseDistance)
 				##newAngle = 360 - (WarRocketLauncher.enemyBaseAngle + explorerAngle);##pendiente problema con angulos superiores a 180
 				#newAngle = 10
-				debugStr = "AttackEnemyBase EA(" + str(explorerAngle) + ") BA( " + str(message.getAngle()) + " )" + " ED: (" + str(explorerDistance) + ")" + " BD: (" + str(message.getDistance()) + ") RLH: " + RLH;
+				debugStr = "AttackEnemyBase EA(" + str(arrContent[0]) + ") BA( " + str(message.getAngle()) + " )" + " ED: (" + str(arrContent[1]) + ")" + " BD: (" + str(message.getDistance()) + ") ";
 				setDebugString(debugStr);
-				setHeading(newAngle)
+				#setHeading(newAngle)
 				return move();
 			if(message.getMessage() == "ThereAreEnemiesInOurBase"): 
 				WarRocketLauncher.ourBaseAngle = message.getAngle();
@@ -36,6 +74,17 @@ class searchEnemyBase(object):
 					
 				return move();
 		return move()
+
+def validateMainMessages():
+	messages = getMessages()
+	for message in messages:
+		if(message.getMessage() == "identifyYou"):
+			sendMessage(message.getSenderID(), "responseIdentify", ("WarRocketLauncher") ); #reply to Base
+		elif(message.getMessage() == "yourGroupIs"):
+			content = message.getContent()
+			WarRocketLauncher.GroupName = content[0]; #Jimmy: setGroupName
+
+	return None
 
 def reflexes():
 	#PerceptsEnemiesWarBase = getPerceptsEnemiesWarBase();
@@ -67,7 +116,7 @@ class defendOurBase(object):
 				break
 
 
-		if(not ThereAreEnemiesInOurBase ):#JImmy: if there are not enemies in the base he continues
+		if(not ThereAreEnemiesInOurBase ): #JImmy: if there are not enemies in the base he continues
 			WarRocketLauncher.nextState = searchEnemyBase
 		return move();
 
@@ -78,6 +127,7 @@ class WiggleState(object):
 		return move();
 
 def actionWarRocketLauncher():
+	validateMainMessages()
 	result = reflexes() # Reflexes
 	if result:
 		return result
@@ -87,16 +137,18 @@ def actionWarRocketLauncher():
 	WarRocketLauncher.nextState = None
 
 	if WarRocketLauncher.currentState:
+		setDebugString("My Group Is: " + WarRocketLauncher.GroupName )
 		return WarRocketLauncher.currentState.execute()
 	else:
 		result = searchEnemyBase.execute()
 		WarRocketLauncher.nextState = searchEnemyBase
+		setDebugString("My Group Is: " + WarRocketLauncher.GroupName )
 		return result;
 
 # Initialisation des variables
 WarRocketLauncher.nextState = searchEnemyBase
 WarRocketLauncher.currentState = None
-
 WarRocketLauncher.ourBaseAngle = 0
 WarRocketLauncher.enemyBaseAngle = 0
+WarRocketLauncher.GroupName = "Default"
 #WarRocketLauncher.lastHealth = 10

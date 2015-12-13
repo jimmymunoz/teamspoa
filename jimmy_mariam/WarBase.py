@@ -1,10 +1,23 @@
+ATTACKPERCENTAGE = 0.5
+
 #def identifyOurTeam:
 #	WarBase.ourTeam = ();
 
+#Method to identify the Agents
+def identifyAgents():
+	WarBase.ourTeam = []
+	messages = getMessages();
+	for message in messages:
+		if(message.getMessage() == "responseIdentify"):
+			tmpContent = message.getContent()
+			WarBase.ourTeam.append( [tmpContent[0], message.getSenderID()] ); #Agent Role, AngetId
 
+	updateTeamInformation()
+
+
+# Update de variable with the Ids of the agents
 def updateTeamInformation():
 	WarBase.teamInformation = {}
-	#Arr Ids
 	WarBase.teamInformation['WarBase'] = []
 	WarBase.teamInformation['WarEngineer'] = []
 	WarBase.teamInformation['WarExplorer'] = []
@@ -19,7 +32,24 @@ def updateTeamInformation():
 			
 		WarBase.teamInformation[agentType].append(agentId)
 
-	return WarBase.teamInformation
+	
+
+def defineGroups():
+	for agentKey, agentIds in WarBase.teamInformation.items():
+		totalGroup = 0
+		totalAgent = len(WarBase.teamInformation[agentKey])
+		for agentId in agentIds:
+			if( agentKey == "WarRocketLauncher" ):
+				if( totalGroup < (ATTACKPERCENTAGE * totalAgent) ): #Send a Message to RocketLaunchers
+					totalGroup = totalGroup + 1
+					sendMessage(agentId, "yourGroupIs", ("Attack") );
+				else:
+					totalGroup = totalGroup + 1
+					sendMessage(agentId, "yourGroupIs", ("Defense") );
+			#elif( agentKey == "WarExplorer" ):
+			#	sendMessage(agentId, "yourGroupIs", ("Defense") );
+
+
 
 def getResumenTeamInformation():
 	resumen = "TeamResume: "
@@ -43,47 +73,44 @@ class defaultState(object):
 		WarBase.nextState = defaultState;
 		messages = getMessages();
 
-		
 		if( WarBase.needsIdentityTeam ):
 			broadcastMessageToAll("identifyYou", "")
-			WarBase.ourTeam = []
 			WarBase.needsIdentityTeam = False
+			
+		identifyAgents()
+			
+		if(True): #Pending condition
+			defineGroups();
+		
 
-		if( createAgent() ):
-			setDebugString("Created");
+		#if( createAgent() ):
+		#	setDebugString("Created");
 
-		if( True ):
-			for message in messages:
-				if(message.getMessage() == "responseIdentify"):
-					tmpContent = message.getContent()
-					WarBase.ourTeam.append( [tmpContent[0], message.getSenderID()] ); #Agent Role, AngetId
-				elif( message.getMessage() == "EnemyBase" and False ) :
-					arrContent = message.getContent()
-					#indexoutofrange
-					ExplorerbaseEnemyAngle = float(arrContent[0]);
-					ExplorerbaseEnemyDistance = float(arrContent[1]);
-					explorerAngle = float(arrContent[0]);
-					explorerDistance = float(arrContent[1]);
-					explorerHeading = float(arrContent[1]);
+		
+		for message in messages:
+			if( message.getMessage() == "EnemyBase" and False ) :
+				arrContent = message.getContent()
+				#indexoutofrange
+				ExplorerbaseEnemyAngle = float(arrContent[0]);
+				ExplorerbaseEnemyDistance = float(arrContent[1]);
+				explorerAngle = float(arrContent[0]);
+				explorerDistance = float(arrContent[1]);
+				explorerHeading = float(arrContent[1]);
 
-					baseEnemyAngle = explorerAngle + ExplorerbaseEnemyAngle;
-					if (baseEnemyAngle > 360):
-						baseEnemyAngle = baseEnemyAngle - 360
+				baseEnemyAngle = explorerAngle + ExplorerbaseEnemyAngle;
+				if (baseEnemyAngle > 360):
+					baseEnemyAngle = baseEnemyAngle - 360
 
-					baseEnemyDistance = 1;
+				baseEnemyDistance = 1;
 
-					#WarBase.baseState = "ExBasEAngle: " + arrContent[0] + " \nExD: " + arrContent[1] + " \nExpH: " + arrContent[2] + " BaseEA: " + str(baseEnemyAngle) + " baseED:" + str(baseEnemyDistance) + " ExpAn: " +  str(message.getAngle()) + " ExpD" + str(message.getDistance());
-					#debugStr = "RocketLaunchersAttack: (" + str(message.getAngle()) + ") Angle ";
-					#setDebugString(debugStr);
-					infoBase = ( str(message.getAngle()), str(message.getDistance()), arrContent[0], arrContent[1], arrContent[2] )  
-					broadcastMessageToAgentType(WarAgentType.WarRocketLauncher, "RocketLaunchersAttack", infoBase);#str to cast string
+				#WarBase.baseState = "ExBasEAngle: " + arrContent[0] + " \nExD: " + arrContent[1] + " \nExpH: " + arrContent[2] + " BaseEA: " + str(baseEnemyAngle) + " baseED:" + str(baseEnemyDistance) + " ExpAn: " +  str(message.getAngle()) + " ExpD" + str(message.getDistance());
+				#debugStr = "RocketLaunchersAttack: (" + str(message.getAngle()) + ") Angle ";
+				#setDebugString(debugStr);
+				infoBase = ( str(message.getAngle()), str(message.getDistance()), arrContent[0], arrContent[1], arrContent[2] )  
+				broadcastMessageToAgentType(WarAgentType.WarRocketLauncher, "RocketLaunchersAttack", infoBase);#str to cast string
 		
 		setDebugString(WarBase.baseState);
-		#teamList = ''.join(str(e) for e in WarBase.ourTeam)
-		#setDebugString( teamList );
-		updateTeamInformation()
-		if(True):
-			WarBase.baseState = getResumenTeamInformation()
+		if(True): # Debug TeamInformation
 			setDebugString( getResumenTeamInformation() );
 		
 		broadcastMessageToAll("baseState", WarBase.baseState);
@@ -105,8 +132,7 @@ def reflexes():
 	for percept in percepts:
 		#Jimmy: Only Rocket Launchers
 		if (percept.getType().equals(WarAgentType.WarRocketLauncher) and isEnemy(percept) and percept.getDistance() <= 30 ):
-			#Disable
-			if(False): 
+			if(False): #Disable
 				broadcastMessageToAgentType(WarAgentType.WarRocketLauncher, "ThereAreEnemiesInOurBase", "");#str to cast string
 				WarBase.baseState = "BaseAtRisk"
 			#setDebugString("ThereAreEnemiesInOurBase distance:" + str(percept.getDistance()) );
@@ -114,8 +140,8 @@ def reflexes():
 	return None
 
 def actionWarBase():
-	validateMainMessages()
 	WarBase.baseState = "BaseOk" #Default State
+	validateMainMessages()
 	result = reflexes() # Reflexes
 	if result:
 		return result
@@ -133,9 +159,9 @@ def actionWarBase():
 
 
 WarBase.nextState = defaultState
+WarBase.currentState = None
 WarBase.ourTeam = [];
 WarBase.teamInformation = {};
 WarBase.baseState = "sateOk"
-WarBase.currentState = None
 WarBase.needsIdentityTeam = True
 WarBase.baseEnemy = []; #Array with the enemy bases location.
