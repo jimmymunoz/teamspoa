@@ -9,7 +9,7 @@ class SearchFoodState(object):
 		actionWarExplorer.nextState = SearchFoodState
 		percepts = getPerceptsFood()
 		if percepts:
-			#broadcastMessageToAgentType(WarAgentType.WarExplorer,"FoodHere","")
+            #broadcastMessageToAgentType(WarAgentType.WarExplorer,"FoodHere","")
 			if percepts[0].getDistance() < getMaxDistanceTakeFood():
 				return take()
 			else:
@@ -26,13 +26,13 @@ class GoHomeState(object):
 	def execute():
 		setDebugString("GoHomeState")
 		if getNbElementsInBag() == 0:
-			# Transition vers l'Ã©tat SearchFood
-			actionWarExplorer.nextState = SearchFoodState
+            # Transition vers l'Ã©tat SearchFood
+			actionWarExplorer.nextState = WiggleState
 			return idle()
-		# Maintien de l'Ã©tat
+        # Maintien de l'Ã©tat
 		actionWarExplorer.nextState = GoHomeState
 		percepts = getPerceptsAlliesWarBase()
-		# Cherche une base dans son champs de vision
+        # Cherche une base dans son champs de vision
 		if percepts:
 			if percepts[0].getDistance() < maxDistanceGive():
 				giveToTarget(percepts[0])
@@ -40,34 +40,47 @@ class GoHomeState(object):
 			else:
 				followTarget(percepts[0])
 				return move()
-		# Cherche une base par les messages
+        # Cherche une base par les messages
 		broadcastMessageToAgentType(WarAgentType.WarBase,"whereAreYouBase","")
 		for mess in getMessages():
 			if isMessageOfWarBase(mess):
 				followTarget(mess)
-				return move()
+			return move()
 		return move()
-
+		
 
 class WiggleState(object):
 	@staticmethod
 	def execute():
 		setDebugString("WiggleState")
-		if (isBlocked()) :
+		percept1 = getPerceptsFood();
+		percept2 = getPerceptsEnemiesByType(WarAgentType.WarBase);
+		if percept1:
+			actionWarExplorer.nextState = SearchFoodState
+		#elif percept2:
+		#	setDebugString("Base ennemie")
+		#	angle = percept2.getAngle()
+		#	broadcastMessageToAgentType(WarAgentType.WarRocketLauncher,"Base ennemie",str(angle))
+		#	setHeading(angle)
+		#	return move();
+		if(isBlocked()):	
 			RandomHeading()
 		return move();
 
 def reflexes():
-	PerceptsEnemiesWarBase = getPerceptsEnemiesWarBase();
-	if PerceptsEnemiesWarBase:
-		percetEnemyBase = PerceptsEnemiesWarBase[0]
-		infoBase = ( str(percetEnemyBase.getAngle()), str(percetEnemyBase.getDistance()), str(getHeading()) )
-		broadcastMessageToAll("EnemyBase",  infoBase )
-		actionWarExplorer.currentTask = "waitingRocket";
-	
+	enemiBases = getPerceptsEnemiesWarBase()
+	if enemiBases:
+		for Ebases in enemiBases:
+			setDebugString("Base ennemie")
+			broadcastMessageToAgentType(WarAgentType.WarRocketLauncher,"Base ennemie",(str(Ebases.getAngle())))
+		#broadcastMessageToAgentType(WarAgentType.WarRocketLauncher,"Base ennemie","")
+		#broadcastMessage("defenceurs", "attaque","attaqueeee","")
+		#broadcastMessageToAll("Base ennemie","")
+			setHeading(Ebases.getAngle())
+			return move();
+		
 	if isBlocked(): 
 		RandomHeading()
-
 	return None
 
 
@@ -76,11 +89,7 @@ def actionWarExplorer():
 	if result:
 		return result
 
-	if( actionWarExplorer.currentTask == "waitingRocket" ):
-		setDebugString("waitingRocketLauchersResponse" + " Heading: " + str( getHeading() ))
-		return idle() #• Idle : l’agent ne bougera plus et ne fera aucune action. 
-
-	# FSM - Changement d'Ã©tat
+    # FSM - Changement d'Ã©tat
 	actionWarExplorer.currentState = actionWarExplorer.nextState
 	actionWarExplorer.nextState = None
 
@@ -92,6 +101,5 @@ def actionWarExplorer():
 		return result
 
 # Initialisation des variables
-actionWarExplorer.nextState = SearchFoodState
+actionWarExplorer.nextState = WiggleState
 actionWarExplorer.currentState = None
-actionWarExplorer.currentTask = ""
