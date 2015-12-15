@@ -102,84 +102,90 @@ def validateMainMessages():
 		elif(message.getMessage() == "yourGroupIs"):
 			content = message.getContent()
 			WarRocketLauncher.GroupName = content[0]; #Jimmy: setGroupName
+			setDebugString("Group: " + content[0])
 			if( WarRocketLauncher.GroupName == "Attack" ):
 				requestRole ("defenceurs", "attaque")
 			
 			elif( WarRocketLauncher.GroupName == "Defense" ):
 				requestRole ("defenceurs", "defend")
 		
-		if(message.getMessage() == "ThereAreEnemiesInOurBase"): 
+		elif(message.getMessage() == "ThereAreEnemiesInOurBase"): 
 			WarRocketLauncher.ourBaseAngle = message.getAngle();
 			baseDistance = message.getDistance();
 			if( WarRocketLauncher.GroupName == "Defense" ):
-				setHeading(WarRocketLauncher.ourBaseAngle)
+				setHeading(message.getAngle())
 			else:
 				if( baseDistance <= DISTANCE_TO_HELP_OUR_BASE ):
-					setHeading(WarRocketLauncher.ourBaseAngle)
-					setDebugString("goToDefendOurBase: " + str(baseDistance));
+					setHeading(message.getAngle())
+					#setDebugString("goToDefendOurBase: " + str(baseDistance));
 					WarRocketLauncher.nextState = defendOurBase
 					WarRocketLauncher.GroupName == "Defense"
 				else:
-					setDebugString("NotEarly: " + str(baseDistance));
+					#setDebugString("NotEarly: " + str(baseDistance));
 					WarRocketLauncher.GroupName = "Attack"
-				
-			return move();
+			#return move();
 
 	return None
 
 def reflexes():
-	PerceptsEnemiesWarBase = getPerceptsEnemiesWarBase();
-	PerceptsEnemiesWarluncher = getPerceptsEnemiesWarRocketLauncher();
-	if PerceptsEnemiesWarBase:
-		percetEnemyBase = PerceptsEnemiesWarBase[0]
-		#broadcastMessageToAll("EnemyBase","")
-		infoBase = ( str(percetEnemyBase.getAngle()), str(percetEnemyBase.getDistance()), str(getHeading()) )
-		broadcastMessageToAll("EnemyBaseFound",  infoBase )
-		for percept in PerceptsEnemiesWarBase:
-			setHeading(percept.getAngle())
-			if (isReloaded()):
-				return fire()
-				#return move()
-			else :
-				return reloadWeapon()
-				#return move()
-	elif( WarRocketLauncher.GroupName == "Defense" ):#Jimmy: Only for the defense Group
-		PerceptsWarRocketLauncher = getPerceptsEnemiesByType(WarAgentType.WarRocketLauncher)
-		#getPerceptsWarKamikaze()
-		if( PerceptsWarRocketLauncher ): #Priority PerceptsWarRocketLauncher
-			for percept in PerceptsWarRocketLauncher:
-				setHeading(percept.getAngle())
-				if (isReloaded()):
-					return fire()
-					#return move()
-				else :
-					return reloadWeapon()
-		else: # Else other enemies
-			for percept in getPerceptsEnemies():
-				setHeading(percept.getAngle())
-				if (isReloaded()):
-					return fire()
-					#return move()
-				else :
-					return reloadWeapon()
+	percepts = getPerceptsEnemies()
+	enemyFound = None
+	for percept in percepts:
+		if( percept.getType() == WarAgentType.WarBase ):
+			infoBase = ( str(percept.getAngle()), str(percept.getDistance()), str(getHeading()) )
+			broadcastMessageToAll("EnemyBaseFound",  infoBase )
+			enemyFound = percept
+			break
+		if( WarRocketLauncher.GroupName == "Defense" ):#Only Defense
+			if( percept.getType() == WarAgentType.WarRocketLauncher ):
+				enemyFound = percept
+				break
+			if( percept.getType() == WarAgentType.WarExplorer ):
+				enemyFound = percept
+				break
+			if( percept.getType() == WarAgentType.WarKamikaze ):
+				enemyFound = percept
+				break
+			if( percept.getType() == WarAgentType.WarEngineer and False ):#Disabled
+				enemyFound = percept
+				break
+			if( percept.getType() == WarAgentType.WarTurret and False ):#Disabled
+				enemyFound = percept
+				break
+
+	if (enemyFound):
+		setHeading(enemyFound.getAngle())
+		if (isReloaded()):
+			return fire()
+		else :
+			return reloadWeapon()
 
 	if isBlocked():
-		RandomHeading()
+		if( WarRocketLauncher.GroupName == "Defense" ):
+			setRandomHeading(30)
+		else:
+			RandomHeading()
 		return None
 
 class defendOurBase(object):
 	@staticmethod
 	def execute():
-		setHeading(WarRocketLauncher.ourBaseAngle)
-		setDebugString("goToDefendOurBase")
+		#setHeading(message.getAngle())
+		#setDebugString("goToDefendOurBase")
 		ThereAreEnemiesInOurBase = False
 		messages = getMessages();
 		for message in messages:
+
 			if(message.getMessage() == "ThereAreEnemiesInOurBase"):
 				ThereAreEnemiesInOurBase = True
+				WarRocketLauncher.nextState = searchEnemyBase
+				WarRocketLauncher.ourBaseAngle = message.getAngle();
+				if( WarRocketLauncher.GroupName == "Defense" ):
+					setHeading(message.getAngle())
 				break
 			elif(message.getMessage() == "BaseState" and message.getContent() == "BaseOk"):
 				ThereAreEnemiesInOurBase = True
+				WarRocketLauncher.nextState = defendOurBase
 				break
 
 		if( WarRocketLauncher.GroupName != "Defense" ):

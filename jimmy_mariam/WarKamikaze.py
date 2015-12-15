@@ -4,12 +4,13 @@ class defaultState(object):
 		setDebugString("I'm a WarKamikaze");
 		messages = getMessages();
 		for message in messages:
+			#if( WarKamikaze.GroupName == "Attack" ):
 			if(message.getMessage() == "EnemyBaseFound"): #Pending to calculate base enemy position
 				arrContent = message.getContent()
 				#WarKamikaze.enemyBaseAngle = message.getAngle();
 				baseDistance = float(message.getDistance());
 
-				debugStr = "AttackEnemyBase BA( " + str(message.getAngle()) + " ) BD: (" + str(message.getDistance()) + ") ";
+				debugStr = "Explote EnemyBase ";
 				setDebugString(debugStr);
 				setHeading(message.getAngle())
 				return move();
@@ -23,22 +24,39 @@ def validateMainMessages():
 			sendMessage(message.getSenderID(), "responseIdentify", ("WarKamikaze") );
 			
 def reflexes():
-	#percepts = getPercepts()
-	PerceptsEnemiesWarBase = getPerceptsEnemiesWarBase();
-	if PerceptsEnemiesWarBase:
-		#broadcastMessageToAll("EnemyBase","")
-		#infoBase = ( str(percetEnemyBase.getAngle()), str(percetEnemyBase.getDistance()), str(getHeading()) )
-		#broadcastMessageToAll("EnemyBaseFound",  infoBase )
-		for percept in PerceptsEnemiesWarBase:
-			setHeading(percept.getAngle())
-			if (isReloaded()):
-				return fire()
-				#return move()
-			else :
-				return reloadWeapon()
+	percepts = getPerceptsEnemies()
+	enemyFound = None
+	for percept in percepts:
+		if( percept.getType() == WarAgentType.WarBase ):
+			enemyFound = percept
+			break
+		if( WarKamikaze.GroupName == "Defense" ):#Only Defense
+			if( percept.getType() == WarAgentType.WarRocketLauncher ):
+				enemyFound = percept
+				break
+			elif( percept.getType() == WarAgentType.WarExplorer ):
+				enemyFound = percept
+				break
+			elif( percept.getType() == WarAgentType.WarKamikaze ):
+				enemyFound = percept
+				break
+			elif( percept.getType() == WarAgentType.WarEngineer and False ):#Disabled
+				enemyFound = percept
+				break
+			elif( percept.getType() == WarAgentType.WarTurret and False ):#Disabled
+				enemyFound = percept
+				break
+
+	if (enemyFound):
+		setHeading(enemyFound.getAngle())
+		if (isReloaded()):
+			return fire()
+		else :
+			return reloadWeapon()
 	#for percept in percepts:
 	if isBlocked():
-		RandomHeading()
+		#RandomHeading()
+		setRandomHeading(30)
 		
 	return None
 
@@ -64,3 +82,4 @@ def actionWarKamikaze():
 WarKamikaze.nextState = defaultState
 WarKamikaze.currentState = None
 WarKamikaze.enemyBaseAngle = 0
+WarKamikaze.GroupName = "Attack"

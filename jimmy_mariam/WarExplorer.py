@@ -92,10 +92,10 @@ def actionWarExplorer():
 
 
 	if( actionWarExplorer.currentTask == "goToEnamyBase" ):
-		setDebugString("goToEnemyBase" + " Id: ")
+		setDebugString("goToEnemyBase")
 		return move()
 	if( actionWarExplorer.currentTask == "waitingRocket" ):
-		setDebugString("waitingRocketLauchersResponse" + " Id: ")
+		setDebugString("waitingAttackResponse")
 		return idle() #• Idle : l’agent ne bougera plus et ne fera aucune action. 
 
 	# FSM - Changement d'Ã©tat
