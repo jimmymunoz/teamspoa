@@ -1,6 +1,6 @@
 #Default Values
-DEFAULT_ATTACK_PERCENTAGE = 0.8 #Defalut percentage 
-DEFENSE_PERCENTAGE = 0.3 #Change to defense percentage 
+DEFAULT_ATTACK_PERCENTAGE = 0.6 #Defalut percentage 
+DEFENSE_PERCENTAGE = 0.2 #Change to defense percentage 
 ATTACK_PERCENTAGE = 0.8 #Change to attack percentage
 BASE_AT_RISK_DISTANCE = 100
 TICKS_TO_CREATE = 300
@@ -277,7 +277,7 @@ WarBase.baseEnemy = []; #Array with the enemy bases location.
 WarBase.WarTurretId = 0
 
 WarBase.attackPercentage = DEFAULT_ATTACK_PERCENTAGE
-WarBase.enableCreation = True
+WarBase.enableCreation = False
 WarBase.distanceFromOurBase = 100
 WarBase.distanceToleranceOurBse = 20
 WarBase.ticksToCreate = 10
